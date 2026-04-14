@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Samaro SEO Command Center</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#ffffff;
+  --bg-secondary:#f4f2eb;
+  --bg-tertiary:#eae8e1;
+  --text-primary:#1a1a18;
+  --text-secondary:#5f5e5a;
+  --text-tertiary:#888780;
+  --border-light:rgba(0,0,0,0.10);
+  --border-mid:rgba(0,0,0,0.18);
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'Menlo','Monaco','Courier New',monospace;
+  --green:#059669;
+  --amber:#D97706;
+  --red:#DC2626;
+  --blue:#185FA5;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg-primary:#1c1c1a;
+    --bg-secondary:#252522;
+    --bg-tertiary:#2e2e2b;
+    --text-primary:#e8e6df;
+    --text-secondary:#a8a69e;
+    --text-tertiary:#6e6c66;
+    --border-light:rgba(255,255,255,0.08);
+    --border-mid:rgba(255,255,255,0.15);
+  }
+}
+body{font-family:var(--font);background:var(--bg-tertiary);color:var(--text-primary);min-height:100vh}
+.wrapper{max-width:960px;margin:0 auto;padding:24px 16px}
+header{margin-bottom:24px}
+header h1{font-size:20px;font-weight:500;color:var(--text-primary)}
+header p{font-size:13px;color:var(--text-tertiary);margin-top:4px}
+.nav{display:flex;gap:4px;padding:4px;background:var(--bg-secondary);border-radius:var(--radius-lg);margin-bottom:20px;flex-wrap:wrap;border:0.5px solid var(--border-light)}
+.nav-btn{flex:1;min-width:80px;padding:8px 12px;border:none;background:transparent;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:var(--font)}
+.nav-btn.active{background:var(--bg-primary);color:var(--text-primary);border:0.5px solid var(--border-mid)}
+.nav-btn:hover:not(.active){background:var(--bg-primary);color:var(--text-primary)}
+.panel{display:none}.panel.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
+@media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px 16px;border:0.5px solid var(--border-light)}
+.stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:6px}
+.stat-val{font-size:24px;font-weight:500;color:var(--text-primary);line-height:1}
+.stat-sub{font-size:12px;color:var(--text-tertiary);margin-top:4px}
+.card{background:var(--bg-primary);border:0.5px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:500;color:var(--text-primary)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-todo{background:var(--bg-secondary);color:var(--text-secondary)}
+.badge-doing{background:#FEF3C7;color:#92400E}
+.badge-done{background:#D1FAE5;color:#065F46}
+.badge-blocked{background:#FEE2E2;color:#991B1B}
+.badge-high{background:#FEE2E2;color:#991B1B}
+.badge-med{background:#FEF3C7;color:#92400E}
+.badge-low{background:#D1FAE5;color:#065F46}
+@media(prefers-color-scheme:dark){
+  .badge-doing{background:#451a03;color:#FDE68A}
+  .badge-done{background:#022c22;color:#6EE7B7}
+  .badge-blocked{background:#450a0a;color:#FCA5A5}
+  .badge-high{background:#450a0a;color:#FCA5A5}
+  .badge-med{background:#451a03;color:#FDE68A}
+  .badge-low{background:#022c22;color:#6EE7B7}
+}
+.task-row{display:grid;grid-template-columns:28px 1fr auto auto 110px;gap:8px;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border-light)}
+@media(max-width:640px){.task-row{grid-template-columns:28px 1fr auto;grid-template-rows:auto auto}.task-row .day-tag,.task-row select{grid-column:2}}
+.task-row:last-child{border-bottom:none}
+.check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border-mid);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg-primary);transition:all .15s;user-select:none}
+.check.done{background:#059669;border-color:#059669}
+.check.done::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.task-name{font-size:13px;color:var(--text-primary);line-height:1.4}
+.task-name.done{text-decoration:line-through;color:var(--text-tertiary)}
+.task-meta{font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4}
+.week-header{background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 14px;margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between;border:0.5px solid var(--border-light)}
+.week-label{font-size:13px;font-weight:500;color:var(--text-primary)}
+.progress-bar{height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;background:#059669;transition:width .4s}
+.day-tag{font-size:11px;color:var(--text-tertiary);background:var(--bg-secondary);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-row select,.form-select{font-size:13px;padding:7px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-family:var(--font)}
+.btn{padding:7px 14px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:background .15s}
+.btn:hover{background:var(--bg-secondary)}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0c447c}
+.kw-row{display:grid;grid-template-columns:1fr 70px 70px 60px 90px;gap:8px;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--border-light);font-size:13px}
+.kw-row:last-child{border-bottom:none}
+.kw-head{display:grid;grid-template-columns:1fr 70px 70px 60px 90px;gap:8px;padding:6px 0 8px;border-bottom:1.5px solid var(--border-mid);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary)}
+@media(max-width:600px){.kw-row,.kw-head{grid-template-columns:1fr 60px 60px 50px}}
+.pos-up{color:#059669;font-weight:500}
+.pos-down{color:#DC2626;font-weight:500}
+.pos-new{color:#185FA5;font-weight:500;font-size:11px}
+.add-kw-form{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid var(--border-light)}
+.add-kw-form input{font-size:13px;padding:7px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-primary);color:var(--text-primary);font-family:var(--font)}
+.add-kw-form input.kw-term-input{flex:1;min-width:140px}
+.add-kw-form input[type=number]{width:80px}
+.slack-pre{background:var(--bg-secondary);border-radius:var(--radius-md);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--text-primary);line-height:1.7;white-space:pre-wrap;word-break:break-word;border:0.5px solid var(--border-light);margin-top:10px;max-height:300px;overflow-y:auto}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:640px){.export-grid{grid-template-columns:1fr}}
+.section-divider{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-tertiary);margin:20px 0 10px;padding-bottom:6px;border-bottom:0.5px solid var(--border-light)}
+.input-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:600px){.input-grid{grid-template-columns:1fr 1fr}}
+.input-grid input,.full-input{font-size:13px;padding:8px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-primary);color:var(--text-primary);font-family:var(--font);width:100%}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#fff;padding:10px 18px;border-radius:var(--radius-md);font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1}
+.today-card{background:var(--bg-primary);border:0.5px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.today-empty{padding:20px;text-align:center;color:var(--text-tertiary);font-size:13px}
+.step-guide{counter-reset:steps}
+.step{display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:0.5px solid var(--border-light)}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{width:28px;height:28px;border-radius:50%;background:#185FA5;color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body h3{font-size:14px;font-weight:500;margin-bottom:6px;color:var(--text-primary)}
+.step-body p{font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px}
+.step-body code{font-family:var(--font-mono);font-size:12px;background:var(--bg-secondary);padding:2px 6px;border-radius:4px;color:var(--text-primary)}
+.step-body .cmd{display:block;font-family:var(--font-mono);font-size:12px;background:var(--bg-secondary);padding:10px 12px;border-radius:var(--radius-md);margin-top:6px;color:var(--text-primary);border:0.5px solid var(--border-light);line-height:1.6;word-break:break-all}
+.step-body a{color:#185FA5;text-decoration:none}
+.step-body a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<header>
+  <h1>Samaro SEO Command Center</h1>
+  <p>90-day task tracker · Keyword analytics · Slack &amp; ClickUp export</p>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchPanel('tasks',this)">Tasks</button>
+  <button class="nav-btn" onclick="switchPanel('today',this)">Today</button>
+  <button class="nav-btn" onclick="switchPanel('keywords',this)">Keywords</button>
+  <button class="nav-btn" onclick="switchPanel('analytics',this)">Analytics</button>
+  <button class="nav-btn" onclick="switchPanel('export',this)">Export</button>
+  <button class="nav-btn" onclick="switchPanel('setup',this)">Setup guide</button>
+</nav>
+
+<!-- TASKS -->
+<div id="panel-tasks" class="panel active">
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Total tasks</div><div class="stat-val" id="st-total">0</div><div class="stat-sub">90-day plan</div></div>
+    <div class="stat"><div class="stat-label">Done</div><div class="stat-val" id="st-done" style="color:var(--green)">0</div><div class="stat-sub" id="st-pct">0% complete</div></div>
+    <div class="stat"><div class="stat-label">In progress</div><div class="stat-val" id="st-doing" style="color:var(--amber)">0</div><div class="stat-sub">active now</div></div>
+    <div class="stat"><div class="stat-label">Blocked</div><div class="stat-val" id="st-blocked" style="color:var(--red)">0</div><div class="stat-sub">needs action</div></div>
+  </div>
+  <div class="filter-row">
+    <select id="filter-week" onchange="renderTasks()" class="form-select">
+      <option value="">All weeks</option>
+      <option value="1">Week 1–2: Foundation</option>
+      <option value="2">Week 3–4: India + International</option>
+      <option value="3">Week 5–6: Scale</option>
+      <option value="4">Week 7–9: Authority</option>
+      <option value="5">Week 10–13: Programmatic</option>
+      <option value="6">Week 7–9 cont.</option>
+    </select>
+    <select id="filter-cat" onchange="renderTasks()" class="form-select">
+      <option value="">All categories</option>
+      <option value="Technical SEO">Technical SEO</option>
+      <option value="Content India">Content India</option>
+      <option value="Content International">Content International</option>
+      <option value="Backlinks">Backlinks</option>
+      <option value="GEO/AEO">GEO/AEO</option>
+      <option value="Analytics">Analytics</option>
+    </select>
+    <select id="filter-status" onchange="renderTasks()" class="form-select">
+      <option value="">All statuses</option>
+      <option value="todo">To do</option>
+      <option value="doing">In progress</option>
+      <option value="done">Done</option>
+      <option value="blocked">Blocked</option>
+    </select>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<!-- TODAY -->
+<div id="panel-today" class="panel">
+  <div class="today-card">
+    <div class="card-head">
+      <span class="card-title" id="today-date"></span>
+      <span class="badge badge-doing" id="today-week-label"></span>
+    </div>
+    <div id="today-tasks"></div>
+  </div>
+  <div class="section-divider">Coming up tomorrow</div>
+  <div id="tomorrow-tasks"></div>
+</div>
+
+<!-- KEYWORDS -->
+<div id="panel-keywords" class="panel">
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val" id="kw-count">0</div></div>
+    <div class="stat"><div class="stat-label">Top 20</div><div class="stat-val" id="kw-ranking" style="color:var(--green)">0</div></div>
+    <div class="stat"><div class="stat-label">Avg position</div><div class="stat-val" id="kw-avg">—</div></div>
+    <div class="stat"><div class="stat-label">Improved</div><div class="stat-val" id="kw-improved" style="color:var(--green)">0</div><div class="stat-sub">vs last entry</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Keyword tracker</span>
+      <button class="btn" onclick="exportKeywordsCSV()">Export CSV</button>
+    </div>
+    <div class="kw-head"><span>Keyword</span><span>Vol/mo</span><span>Position</span><span>Change</span><span>Status</span></div>
+    <div id="kw-list"></div>
+    <div class="add-kw-form">
+      <input id="kw-term" class="kw-term-input" placeholder="Add keyword..." />
+      <input id="kw-vol" type="number" placeholder="Volume" min="0" />
+      <input id="kw-pos" type="number" placeholder="Position" min="1" max="200" />
+      <select id="kw-status" class="form-select">
+        <option value="not ranking">Not ranking</option>
+        <option value="top 50">Top 50</option>
+        <option value="top 20">Top 20</option>
+        <option value="top 10">Top 10</option>
+        <option value="top 3">Top 3</option>
+      </select>
+      <button class="btn btn-primary" onclick="addKeyword()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS -->
+<div id="panel-analytics" class="panel">
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Organic sessions/mo</div><div class="stat-val" id="an-sessions">—</div><div class="stat-sub" id="an-sessions-sub">Enter below</div></div>
+    <div class="stat"><div class="stat-label">Indexed pages</div><div class="stat-val" id="an-pages">—</div></div>
+    <div class="stat"><div class="stat-label">Domain Rating</div><div class="stat-val" id="an-dr">—</div></div>
+    <div class="stat"><div class="stat-label">Backlinks</div><div class="stat-val" id="an-bl">—</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Update monthly metrics</span></div>
+    <div class="input-grid">
+      <input id="in-sessions" type="number" placeholder="Sessions/mo" />
+      <input id="in-pages" type="number" placeholder="Indexed pages" />
+      <input id="in-dr" type="number" placeholder="Domain Rating" />
+      <input id="in-bl" type="number" placeholder="Backlinks" />
+    </div>
+    <button class="btn btn-primary" onclick="saveMetrics()">Save metrics</button>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Keyword growth (projected 90 days)</span></div>
+    <div style="position:relative;height:220px"><canvas id="kw-chart" role="img" aria-label="Keyword growth chart">Keyword count over 90 days.</canvas></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-title">Organic traffic trend</span></div>
+    <div style="position:relative;height:200px"><canvas id="traffic-chart" role="img" aria-label="Traffic trend chart">Organic traffic by month.</canvas></div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div id="panel-export" class="panel">
+  <div class="export-grid">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Slack — daily standup</span></div>
+      <div class="slack-pre" id="slack-today"></div>
+      <button class="btn" style="margin-top:8px" onclick="copyText('slack-today',this)">Copy for Slack</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Slack — weekly digest</span></div>
+      <div class="slack-pre" id="slack-weekly"></div>
+      <button class="btn" style="margin-top:8px" onclick="copyText('slack-weekly',this)">Copy for Slack</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">ClickUp — task import CSV</span></div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Import into ClickUp via <strong>Settings → Import → CSV</strong>. Columns map to: Task Name, Status, Priority, Due Date, Tags, Description.</p>
+    <button class="btn btn-primary" onclick="downloadClickUp()">Download ClickUp CSV</button>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-title">Full plan export (JSON)</span></div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">All task data + statuses + keywords. Use with Zapier, Make, or n8n to push into any system.</p>
+    <button class="btn" onclick="downloadJSON()">Download JSON</button>
+  </div>
+</div>
+
+<!-- SETUP GUIDE -->
+<div id="panel-setup" class="panel">
+  <div class="card">
+    <div class="card-head"><span class="card-title">How to deploy this tool to your own domain</span></div>
+    <div class="step-guide">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Download this file</h3>
+          <p>This page <em>is</em> the deployable file — just save it. Right-click anywhere on the page in your browser → <strong>Save as</strong> → save as <code>index.html</code>. Or use the button below.</p>
+          <button class="btn btn-primary" style="margin-top:8px" onclick="downloadSelf()">Download index.html</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Create a free GitHub account &amp; repo</h3>
+          <p>Go to <a href="https://github.com" target="_blank">github.com</a> → Sign up (free) → Click <strong>New repository</strong> → Name it <code>samaro-seo</code> → Set to <strong>Private</strong> → Click <strong>Create repository</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Upload your index.html to GitHub</h3>
+          <p>Inside your new repo, click <strong>uploading an existing file</strong> → drag your <code>index.html</code> onto the page → scroll down → click <strong>Commit changes</strong>. No coding required.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Deploy on Vercel (free)</h3>
+          <p>Go to <a href="https://vercel.com" target="_blank">vercel.com</a> → Click <strong>Sign Up</strong> → choose <strong>Continue with GitHub</strong> → authorise Vercel.</p>
+          <p style="margin-top:8px">Then click <strong>Add New Project</strong> → select your <code>samaro-seo</code> repo → click <strong>Deploy</strong>.</p>
+          <p style="margin-top:8px">Vercel auto-detects the HTML file. Your app is live at <code>samaro-seo.vercel.app</code> within 60 seconds.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Add your custom domain (e.g. seo.samaro.ai)</h3>
+          <p>In Vercel → open your project → <strong>Settings</strong> → <strong>Domains</strong> → type <code>seo.samaro.ai</code> → click <strong>Add</strong>.</p>
+          <p style="margin-top:8px">Vercel shows you a CNAME record to add. Go to your domain registrar (wherever samaro.ai DNS is managed — likely Cloudflare, GoDaddy, or Namecheap).</p>
+          <p style="margin-top:8px">Add this DNS record:</p>
+          <span class="cmd">Type: CNAME
+Name: seo
+Value: cname.vercel-dns.com</span>
+          <p style="margin-top:8px">Wait 5–10 minutes → your tool is live at <strong>seo.samaro.ai</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h3>Password protect it (optional)</h3>
+          <p>To keep it private, create a <code>vercel.json</code> file in your repo alongside <code>index.html</code> with this content:</p>
+          <span class="cmd">{
+  "passwordProtection": {
+    "password": "yourpassword123"
+  }
+}</span>
+          <p style="margin-top:8px">Vercel will prompt for the password before showing the page. (Requires Vercel Pro — $20/mo — for password protection. Free alternative: add a simple JS prompt at the top of index.html.)</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <h3>Update the tool in future</h3>
+          <p>Any time you want to update the tool (add tasks, change keywords etc.), edit <code>index.html</code> on GitHub directly → click the pencil icon → make changes → <strong>Commit changes</strong>. Vercel auto-deploys within 30 seconds. No manual re-upload needed.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- end wrapper -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const ALL_TASKS=[
+  {id:1,day:1,week:1,cat:"Technical SEO",pri:"high",name:"Verify samaro.ai in Google Search Console & submit sitemap",detail:"Go to search.google.com/search-console → Add property → verify via DNS TXT record → submit sitemap.xml"},
+  {id:2,day:1,week:1,cat:"Technical SEO",pri:"high",name:"Set up Ahrefs or Semrush free trial — capture baseline keyword snapshot",detail:"Record current positions for top 20 target keywords. Screenshot everything for Day 1 vs Day 90 comparison."},
+  {id:3,day:1,week:1,cat:"Technical SEO",pri:"high",name:"Add Organization JSON-LD schema to homepage via Framer Custom Code",detail:"Include: name, url, logo, sameAs (LinkedIn, Instagram, YouTube, X, Crunchbase), foundingDate, description"},
+  {id:4,day:2,week:1,cat:"Technical SEO",pri:"high",name:"Add SoftwareApplication JSON-LD schema to homepage",detail:"applicationCategory: MultimediaApplication, operatingSystem: Web, offers with price, aggregateRating"},
+  {id:5,day:2,week:1,cat:"Technical SEO",pri:"high",name:"Fix FAQ crawlability — make accordion answers visible in static HTML",detail:"In Framer: change FAQ so answers render in DOM by default, not hidden. Google needs to read the answer text."},
+  {id:6,day:3,week:1,cat:"Technical SEO",pri:"high",name:"Add FAQPage JSON-LD schema to homepage FAQ section",detail:"Use FAQPage schema with Question and Answer pairs for all 9 FAQ questions on the homepage."},
+  {id:7,day:3,week:1,cat:"Technical SEO",pri:"med",name:"Fix title tag on /photographers — reduce from 74 to under 60 chars",detail:"New title: 'AI Photo Sharing App for Photographers | Samaro' (49 chars)"},
+  {id:8,day:4,week:1,cat:"Technical SEO",pri:"med",name:"Fix title tag on /event-planners — reduce from 79 to under 60 chars",detail:"New title: 'AI Event Photo Sharing & Digital Invites | Samaro' (50 chars)"},
+  {id:9,day:4,week:1,cat:"Technical SEO",pri:"med",name:"Create standalone /pricing page (currently just an anchor #pricing-2)",detail:"Dedicated URL at /pricing with PriceSpecification schema. Will rank for 'Samaro pricing' query."},
+  {id:10,day:5,week:1,cat:"Technical SEO",pri:"high",name:"Add FAQPage schema to /photographers and /event-planners pages",detail:"Both pages have FAQ sections. Add FAQPage JSON-LD to each with minimum 5 Q&A pairs."},
+  {id:11,day:5,week:1,cat:"Analytics",pri:"high",name:"Set up Google Analytics 4 — install tracking code on all pages",detail:"Create GA4 property → get G-XXXXXX code → Framer: Site Settings → Custom Code → paste in head section"},
+  {id:12,day:6,week:1,cat:"Backlinks",pri:"high",name:"Create G2 profile and request first 10 reviews from existing clients",detail:"Claim listing at g2.com → email top clients (Niche Events, Wedding Nama, Brahma Studio) with review link"},
+  {id:13,day:7,week:1,cat:"Backlinks",pri:"high",name:"Create Capterra profile and replicate review requests",detail:"Same clients as G2 but different email copy. Target 10 reviews within 2 weeks on each platform."},
+  {id:14,day:8,week:1,cat:"Content India",pri:"high",name:"Publish blog: 'Samaro vs Fotoowl — honest 2026 comparison'",detail:"Target KW: samaro vs fotoowl. 1500+ words. Feature table, pricing comparison, FAQPage schema. URL: /blogs/samaro-vs-fotoowl"},
+  {id:15,day:8,week:1,cat:"Content India",pri:"high",name:"Create /samaro-vs-kwikpic product comparison landing page",detail:"Full landing page (not blog). Interactive comparison table, testimonials from photographers who switched."},
+  {id:16,day:9,week:1,cat:"Content International",pri:"high",name:"Publish blog: 'Best SmugMug alternative for event photographers 2026'",detail:"Target KW: smugmug alternative (8k-12k/mo global). 2000+ words. Real SmugMug pain points from user forums."},
+  {id:17,day:9,week:1,cat:"Content India",pri:"high",name:"Publish blog: 'Turtlepic alternative — why photographers choose Samaro'",detail:"Target KW: turtlepic alternative. Counter their 'Best Samaro alternatives' article directly."},
+  {id:18,day:10,week:1,cat:"Content International",pri:"high",name:"Camera to Cloud for Sony — full setup guide with screenshots",detail:"Target KW: camera to cloud sony (1.5k-3k/mo). Replicate Nikon post format. Add HowTo JSON-LD schema."},
+  {id:19,day:10,week:1,cat:"Content International",pri:"high",name:"Camera to Cloud for Canon — complete setup guide",detail:"Target KW: camera to cloud canon (1.5k-3k/mo). Include Canon-specific FTP menu steps."},
+  {id:20,day:11,week:1,cat:"Technical SEO",pri:"med",name:"Add HowTo JSON-LD schema to /camera2cloud page",detail:"Mark up the workflow: create event → upload → AI edit → review → share. 5-step HowTo schema."},
+  {id:21,day:11,week:1,cat:"GEO/AEO",pri:"high",name:"Rewrite About page with clear 'What is Samaro?' entity definition paragraph",detail:"2-3 AI-citable sentences at the top. This is what Perplexity and ChatGPT cite when asked about Samaro."},
+  {id:22,day:12,week:1,cat:"Technical SEO",pri:"med",name:"Add datePublished, dateModified and author schema to all blog posts",detail:"In Framer CMS: add author and date fields. Add Article JSON-LD with datePublished, dateModified, author."},
+  {id:23,day:13,week:1,cat:"Backlinks",pri:"med",name:"Submit Samaro to Product Hunt — use Camera2Cloud as the hook",detail:"Prepare tagline, 5 screenshots, 3 GIFs of facial recognition + WhatsApp bot. Launch on a Thursday."},
+  {id:24,day:14,week:1,cat:"Analytics",pri:"med",name:"Week 1 review — record all baseline metrics in Analytics panel",detail:"Sessions, indexed pages, GSC clicks, keyword positions. Update the analytics panel in this tool."},
+  {id:25,day:15,week:2,cat:"Content India",pri:"high",name:"Publish blog: 'Samaro vs Premagic — corporate events comparison'",detail:"Target KW: samaro vs premagic. Cover Premagic's pricing opacity vs Samaro's transparent storage pricing."},
+  {id:26,day:15,week:2,cat:"Content India",pri:"high",name:"Create /samaro-vs-fotoowl product landing page (not blog)",detail:"Convert the blog post into a proper comparison landing page with schema and strong CTA."},
+  {id:27,day:16,week:2,cat:"Content International",pri:"high",name:"Publish blog: 'Best ShootProof alternative with AI face recognition'",detail:"Target KW: shootproof alternative (3k-6k/mo). Lead with ShootProof's ZIP download mobile disaster."},
+  {id:28,day:16,week:2,cat:"Content International",pri:"high",name:"Camera to Cloud for Fujifilm — full setup guide",detail:"Target KW: camera to cloud fujifilm. Include X-T5, X-H2S FTP configuration steps."},
+  {id:29,day:17,week:2,cat:"Content International",pri:"high",name:"Publish blog: 'Best client gallery software for photographers 2026'",detail:"Target KW: best client gallery software (5k-9k/mo). Evaluation criteria designed around Samaro strengths."},
+  {id:30,day:17,week:2,cat:"GEO/AEO",pri:"high",name:"Add 'What is Samaro?' definitional section to homepage above fold",detail:"60-word entity description. AI engines cite this for brand queries. Must mention facial recognition, WhatsApp, Camera2Cloud."},
+  {id:31,day:18,week:2,cat:"Content International",pri:"high",name:"Publish blog: 'How to deliver wedding photos to guests instantly'",detail:"Target KW: how to deliver wedding photos (8k-15k/mo). First 60 words = direct answer for AI Overviews. HowTo schema."},
+  {id:32,day:18,week:2,cat:"Technical SEO",pri:"med",name:"Create image sitemap for /sample-galleries page",detail:"List all sample gallery images with captions. Submit to GSC. Target image search for 'wedding photo gallery'."},
+  {id:33,day:19,week:2,cat:"Content International",pri:"high",name:"Publish blog: 'Best Zenfolio alternative for event photographers'",detail:"Target KW: zenfolio alternative (4k-8k/mo). Cover Zenfolio's interface complexity and 7% commerce fee."},
+  {id:34,day:19,week:2,cat:"Content India",pri:"high",name:"Publish pillar post: 'Best AI photo sharing platforms in India 2026'",detail:"2500+ words. Cover Kwikpic, Fotoowl, Premagic, Turtlepic, Celebrare, Samaro. Samaro wins. Add comparison table."},
+  {id:35,day:20,week:2,cat:"Backlinks",pri:"high",name:"Pitch guest post to PetaPixel — camera-to-cloud trend story",detail:"Angle: 'The end of the USB drive: how camera-to-cloud is changing event photography.' Include 200M+ media stat."},
+  {id:36,day:21,week:2,cat:"Backlinks",pri:"med",name:"Reach out to 5 Indian wedding portals for tool listing placement",detail:"Target: WeddingWire India, ShaadiSaga, Wedmegood, Weddingz.in. Offer free photographer tool guide as exchange."},
+  {id:37,day:22,week:2,cat:"Content International",pri:"high",name:"Publish blog: 'Best CloudSpot alternative with AI face recognition'",detail:"Target KW: cloudspot alternative (1.5k-3k/mo). Lead with CloudSpot's disastrous mobile ZIP download process."},
+  {id:38,day:22,week:2,cat:"Content International",pri:"high",name:"Camera to Cloud for wedding photographers — full workflow guide",detail:"Target KW: camera to cloud wedding photography. Covers full workflow from ceremony to WhatsApp delivery."},
+  {id:39,day:23,week:2,cat:"GEO/AEO",pri:"high",name:"Add FAQPage schema to dedicated /faq page — ensure static HTML",detail:"Full FAQ page with 15+ Q&As visible without JavaScript. Add FAQPage JSON-LD. Primary AEO page."},
+  {id:40,day:23,week:2,cat:"Content International",pri:"med",name:"Publish blog: 'Best AI photo sharing app for events 2026'",detail:"Target KW: best ai photo sharing app events (4k-7k/mo). Comprehensive guide covering all key features."},
+  {id:41,day:24,week:2,cat:"Backlinks",pri:"med",name:"Submit Samaro to AppSumo Marketplace",detail:"List Camera2Cloud workflow as lifetime deal. AppSumo drives backlinks from hundreds of deal-listing blogs."},
+  {id:42,day:25,week:2,cat:"Analytics",pri:"med",name:"Week 2 review — check GSC for click growth on new posts, keyword movement",detail:"Look for posts with impressions. Record positions for all target keywords. Update keyword tracker panel."},
+  {id:43,day:26,week:3,cat:"Content India",pri:"high",name:"Publish blog: 'Celebrare alternative — why photographers choose Samaro'",detail:"Target KW: celebrare alternative. WhatsApp bot, 4K video, Camera2Cloud vs Celebrare feature gaps."},
+  {id:44,day:26,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'Best Pic-Time alternative for event photographers'",detail:"Target KW: pic-time alternative (2k-4k/mo). Cover Pic-Time's lack of AI and WhatsApp delivery."},
+  {id:45,day:27,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'How to share event photos with 500+ guests without an app'",detail:"Target KW: share event photos without app. QR gallery, WhatsApp delivery, zero downloads required."},
+  {id:46,day:27,week:3,cat:"Content International",pri:"high",name:"Camera to Cloud vs USB — modern photographer's decision guide",detail:"Target KW: camera to cloud vs usb. Speed, reliability, quality comparison with concrete data examples."},
+  {id:47,day:28,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'Best wedding photo delivery platform 2026'",detail:"Target KW: wedding photo delivery platform (3k-5k/mo). Evaluation criteria built around Samaro strengths."},
+  {id:48,day:28,week:3,cat:"Technical SEO",pri:"med",name:"Add internal linking — every blog post must link to 2 feature pages",detail:"Audit all 35+ blog posts. Each needs a 'Try this with Samaro' CTA block linking to /photographers or /camera2cloud."},
+  {id:49,day:29,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'Marathon photo sharing — how AI delivers 10,000 race photos'",detail:"Target KW: marathon photo sharing. Covers facial recognition for each runner, instant delivery at finish line."},
+  {id:50,day:29,week:3,cat:"Backlinks",pri:"high",name:"Pitch Fstoppers: Camera2Cloud workflow live demonstration article",detail:"Offer 1200-word product demonstration with embedded video. Fstoppers regularly covers photographer workflow tools."},
+  {id:51,day:30,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'How does AI facial recognition work in photo galleries?'",detail:"Target KW: ai facial recognition photo gallery (4k-8k/mo). Educational, GEO-optimized — first para = direct answer."},
+  {id:52,day:30,week:3,cat:"GEO/AEO",pri:"high",name:"Create 'Samaro in the press / media kit' page",detail:"Compile press mentions, ProductHunt launch, G2 reviews, case studies. Builds E-E-A-T for AI engine citations."},
+  {id:53,day:31,week:3,cat:"Content International",pri:"high",name:"Publish blog: 'Best Photobucket alternative for professional photographers'",detail:"Target KW: photobucket alternative (5k-9k/mo). Photobucket has huge brand recognition but declining product."},
+  {id:54,day:32,week:3,cat:"Content International",pri:"med",name:"Publish blog: 'Best photo gallery software without compression 2026'",detail:"Target KW: photo gallery without compression (2k-4k/mo). Samaro's original quality on all plans is key differentiator."},
+  {id:55,day:32,week:3,cat:"Content India",pri:"med",name:"Create /samaro-vs-turtlepic comparison landing page",detail:"Turtlepic is publishing content naming Samaro — respond with a dedicated comparison page."},
+  {id:56,day:33,week:3,cat:"Backlinks",pri:"med",name:"Reach out to 10 photographer clients for written testimonials + backlinks",detail:"Ask them to publish a blog post about their Samaro experience. Their studio sites create backlinks."},
+  {id:57,day:34,week:3,cat:"Content International",pri:"high",name:"Camera to Cloud for sports photography — complete guide",detail:"Target KW: camera to cloud sports. Cycling events, triathlons, 5K races, corporate sports days."},
+  {id:58,day:35,week:3,cat:"Analytics",pri:"high",name:"30-day milestone review — update all metrics and export Slack report",detail:"Sessions, indexed pages, DR, backlinks, keyword count, G2 reviews. Share progress via Slack weekly digest export."},
+  {id:59,day:36,week:4,cat:"Content International",pri:"high",name:"Publish blog: 'Best ImageShack alternative for modern photographers'",detail:"Target KW: imageshack alternative (2k-4k/mo). ImageShack users are actively looking to migrate to modern platforms."},
+  {id:60,day:36,week:4,cat:"Content International",pri:"high",name:"Publish blog + landing page: 'Best photo sharing for corporate events 2026'",detail:"Target KW: corporate event photo platform (2.5k-5k/mo). Create /corporate-events use-case page."},
+  {id:61,day:37,week:4,cat:"Content International",pri:"high",name:"Publish blog: 'How to collect photos from event guests — complete guide'",detail:"Target KW: collect photos event guests. WhatsApp bot, QR code upload, selfie-to-gallery workflow."},
+  {id:62,day:37,week:4,cat:"Content India",pri:"high",name:"Create /wedding-photographers India-specific landing page",detail:"India-first copy: rupee pricing context, WhatsApp workflow, Indian ceremonies (sangeet, baarat, mehndi)."},
+  {id:63,day:38,week:4,cat:"Content International",pri:"high",name:"Publish blog: 'How to set up QR code photo gallery for any event'",detail:"Target KW: qr code event photo gallery (3k-6k/mo). Step-by-step guide with HowTo schema."},
+  {id:64,day:38,week:4,cat:"GEO/AEO",pri:"high",name:"Add VideoObject schema to all blog posts with embedded YouTube videos",detail:"Every post with a YouTube embed needs VideoObject JSON-LD: name, description, thumbnailUrl, uploadDate."},
+  {id:65,day:39,week:4,cat:"Content International",pri:"high",name:"Publish blog: '4K video sharing for events — why most platforms fail'",detail:"Target KW: 4k video sharing events. Samaro's native 4K (5GB per video, no compression) is the differentiator."},
+  {id:66,day:39,week:4,cat:"Backlinks",pri:"high",name:"Publish co-branded case study: Niche Events x Samaro",detail:"750-word case study with Priyal Mehta. Include event size, photos delivered, guest satisfaction. URL: /case-studies/niche-events"},
+  {id:67,day:40,week:4,cat:"Content International",pri:"high",name:"Publish blog: 'WhatsApp photo sharing for events — complete 2026 guide'",detail:"Target KW: whatsapp photo sharing events. This category is entirely unclaimed globally. Samaro should own it."},
+  {id:68,day:40,week:4,cat:"Content International",pri:"med",name:"Publish blog: 'Best photo sharing platform for large events 2026'",detail:"Target KW: photo sharing platform large events (2k-4k/mo). Scale messaging — 55k events, 200M media."},
+  {id:69,day:41,week:4,cat:"Technical SEO",pri:"med",name:"Run PageSpeed Insights on homepage, /photographers, /camera2cloud",detail:"Record LCP, CLS, FID scores at pagespeed.web.dev. If LCP > 2.5s, find largest Framer image and optimize."},
+  {id:70,day:42,week:4,cat:"Analytics",pri:"med",name:"Week 6 review — identify international posts with 50+ impressions/day in GSC",detail:"These posts need CTR optimization: update title and meta description. Check Search Console Performance tab."},
+  {id:71,day:43,week:5,cat:"Content International",pri:"high",name:"Publish blog: 'School event photo sharing — complete platform guide'",detail:"Target KW: school event photo sharing. Schools globally are high-volume repeat buyers."},
+  {id:72,day:43,week:5,cat:"Content International",pri:"high",name:"Publish blog: 'Conference photo sharing: AI delivers 10,000 photos instantly'",detail:"Target KW: conference photo sharing. B2B angle — sponsors, attendees, post-event marketing content."},
+  {id:73,day:44,week:5,cat:"Content International",pri:"high",name:"Publish blog: 'Event photography workflow — camera to client in minutes'",detail:"Target KW: event photography workflow 2026. Comprehensive workflow guide for professional photographers."},
+  {id:74,day:44,week:5,cat:"Content India",pri:"high",name:"Publish blog: 'Why Indian photographers choose Samaro over Kwikpic in 2026'",detail:"Long-form trust post. 5 real photographer testimonials. Counter Kwikpic's brand authority in India."},
+  {id:75,day:45,week:5,cat:"Backlinks",pri:"high",name:"Data-driven PR pitch: '55,000 events reveal photo delivery expectations'",detail:"Use Samaro internal data. Pitch PetaPixel, Photography Blog, DPReview. India vs global comparison earns 5+ DA60+ links."},
+  {id:76,day:46,week:5,cat:"Content International",pri:"med",name:"Publish blog: 'How to share high-resolution photos without losing quality'",detail:"Target KW: share high resolution photos (5k-10k/mo). Samaro original quality vs compressed competitors."},
+  {id:77,day:46,week:5,cat:"Technical SEO",pri:"med",name:"Verify sitemap.xml covers all key pages — fix any coverage errors in GSC",detail:"Check GSC Coverage report for Excluded or Error pages. Fix noindex tags or crawl blocks. Resubmit sitemap."},
+  {id:78,day:47,week:5,cat:"Backlinks",pri:"med",name:"Publish co-branded case study: Robin Saini Photography x Samaro",detail:"Robin mentioned affordable pricing, no hidden charges. Build case study showing pricing comparison with competitors."},
+  {id:79,day:47,week:5,cat:"Content India",pri:"med",name:"Create /samaro-vs-celebrare comparison page",detail:"Focus on Celebrare's limited features vs Samaro's full stack — WhatsApp, 4K video, Camera2Cloud, digital invites."},
+  {id:80,day:48,week:5,cat:"Content International",pri:"med",name:"Publish blog: 'Best photo delivery apps — same day gallery tools'",detail:"Target KW: same day photo delivery app (1k-2.5k/mo). Frame Camera2Cloud as the definitive answer."},
+  {id:81,day:49,week:5,cat:"Analytics",pri:"med",name:"45-day review — export GSC data and compare keyword positions to Day 1 baseline",detail:"Update keyword tracker with latest positions. Identify which content pillars are gaining traction."},
+  {id:82,day:50,week:5,cat:"Content International",pri:"high",name:"Publish blog: 'How to watermark photos dynamically without re-uploading'",detail:"Target KW: dynamic watermark photos. Feature-specific post with internal link to /photographers page."},
+  {id:83,day:50,week:5,cat:"Backlinks",pri:"med",name:"Reach out to 5 UAE/Dubai wedding photography studios for partnership",detail:"Target photographers serving Indian diaspora in UAE. Offer whitelabeled Samaro + backlink exchange."},
+  {id:84,day:51,week:5,cat:"Content International",pri:"med",name:"Publish blog: 'Best online proofing galleries for photographers 2026'",detail:"Target KW: online proofing gallery photographers. Position Samaro's client photo selection feature."},
+  {id:85,day:53,week:6,cat:"Content International",pri:"high",name:"Publish blog: 'Festival photo sharing app — AI for music and cultural events'",detail:"Target KW: festival photo sharing app. Samaro's WhatsApp + facial recognition is ideal for festival scale."},
+  {id:86,day:53,week:6,cat:"Content India",pri:"med",name:"Create programmatic city pages: wedding photo sharing for 5 Indian metros",detail:"Create /wedding-photo-sharing-mumbai, -delhi, -bangalore, -hyderabad, -chennai. Localized content + local SEO."},
+  {id:87,day:54,week:6,cat:"Backlinks",pri:"high",name:"Photography Life guest post: Camera to Cloud deep technical dive",detail:"Technical deep-dive on camera-to-cloud technology. Photography Life DR 65+ domain. High authority backlink."},
+  {id:88,day:55,week:6,cat:"Content International",pri:"med",name:"Publish blog: 'Graduation photo sharing — how schools deliver photos at scale'",detail:"Target KW: graduation photo sharing. Schools and universities are large-volume repeat customers globally."},
+  {id:89,day:56,week:6,cat:"Analytics",pri:"high",name:"60-day full audit — compare all KPIs to Day 1 baseline and adjust plan",detail:"Sessions, DR, indexed pages, keyword count, G2 reviews, backlinks. Identify underperforming content to strengthen."},
+  {id:90,day:60,week:6,cat:"Technical SEO",pri:"med",name:"Technical SEO audit — identify thin pages, duplicate content, coverage errors",detail:"Use Screaming Frog free (500 URLs) or GSC Coverage. Strengthen thin pages or add canonical tags."},
+];
+
+const DEFAULT_KW=[
+  {term:"samaro ai",vol:400,pos:2,prev:2,status:"top 3"},
+  {term:"best kwikpic alternative",vol:200,pos:3,prev:5,status:"top 3"},
+  {term:"best pixieset alternative",vol:300,pos:4,prev:8,status:"top 10"},
+  {term:"camera to cloud for photographers",vol:400,pos:11,prev:15,status:"top 20"},
+  {term:"ai photo sharing app events",vol:500,pos:18,prev:null,status:"top 20"},
+  {term:"wedding photo sharing whatsapp",vol:700,pos:22,prev:null,status:"top 50"},
+  {term:"facial recognition photo sharing",vol:350,pos:25,prev:null,status:"top 50"},
+  {term:"best smugmug alternative",vol:8000,pos:null,prev:null,status:"not ranking"},
+  {term:"shootproof alternative",vol:4000,pos:null,prev:null,status:"not ranking"},
+  {term:"zenfolio alternative",vol:5000,pos:null,prev:null,status:"not ranking"},
+];
+
+let tasks=[], keywords=[], metrics={};
+
+function loadState(){
+  try{const r=localStorage.getItem('samaro-tasks');tasks=r?JSON.parse(r):ALL_TASKS.map(t=>({...t,status:'todo'}));}catch(e){tasks=ALL_TASKS.map(t=>({...t,status:'todo'}));}
+  try{const r=localStorage.getItem('samaro-keywords');keywords=r?JSON.parse(r):DEFAULT_KW;}catch(e){keywords=DEFAULT_KW;}
+  try{const r=localStorage.getItem('samaro-metrics');metrics=r?JSON.parse(r):{};}catch(e){metrics={};}
+}
+function saveState(){
+  try{localStorage.setItem('samaro-tasks',JSON.stringify(tasks));}catch(e){}
+  try{localStorage.setItem('samaro-keywords',JSON.stringify(keywords));}catch(e){}
+}
+function saveMetricsToStorage(){
+  try{localStorage.setItem('samaro-metrics',JSON.stringify(metrics));}catch(e){}
+}
+
+function switchPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='analytics')renderAnalytics();
+  if(id==='today')renderToday();
+  if(id==='export')renderExport();
+  if(id==='keywords')renderKeywords();
+}
+
+function renderStats(){
+  const done=tasks.filter(t=>t.status==='done').length;
+  const doing=tasks.filter(t=>t.status==='doing').length;
+  const blocked=tasks.filter(t=>t.status==='blocked').length;
+  document.getElementById('st-total').textContent=tasks.length;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-doing').textContent=doing;
+  document.getElementById('st-blocked').textContent=blocked;
+  document.getElementById('st-pct').textContent=Math.round(done/tasks.length*100)+'% complete';
+}
+
+function renderTasks(){
+  const wf=document.getElementById('filter-week').value;
+  const cf=document.getElementById('filter-cat').value;
+  const sf=document.getElementById('filter-status').value;
+  let filtered=tasks.filter(t=>{
+    if(wf&&t.week!==parseInt(wf))return false;
+    if(cf&&t.cat!==cf)return false;
+    if(sf&&(t.status||'todo')!==sf)return false;
+    return true;
+  });
+  const wLabels={1:'Weeks 1–2: Foundation & Quick Wins',2:'Weeks 3–4: India Defence + International Launch',3:'Weeks 5–6: Scale Content',4:'Weeks 7–9: Authority Building',5:'Weeks 10–13: Programmatic',6:'Weeks 7–9 (cont.)'};
+  const weeks=[...new Set(filtered.map(t=>t.week))].sort((a,b)=>a-b);
+  let html='';
+  weeks.forEach(w=>{
+    const wt=filtered.filter(t=>t.week===w);
+    const done=wt.filter(t=>t.status==='done').length;
+    const pct=Math.round(done/wt.length*100);
+    html+=`<div class="week-header"><span class="week-label">${wLabels[w]||'Week '+w}</span><span style="font-size:12px;color:var(--text-tertiary)">${done}/${wt.length} done</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+    html+=`<div class="card" style="margin-top:8px">`;
+    wt.forEach(t=>{
+      const st=t.status||'todo';
+      const sMap={todo:'badge-todo',doing:'badge-doing',done:'badge-done',blocked:'badge-blocked'};
+      const pMap={high:'badge-high',med:'badge-med',low:'badge-low'};
+      html+=`<div class="task-row">
+        <div class="check ${st==='done'?'done':''}" onclick="cycleStatus(${t.id})" title="Click to cycle status"></div>
+        <div>
+          <div class="task-name ${st==='done'?'done':''}">${t.name}</div>
+          <div class="task-meta">${t.cat} &middot; ${t.detail.substring(0,90)}...</div>
+        </div>
+        <span class="badge ${pMap[t.pri]||'badge-med'}">${t.pri}</span>
+        <span class="day-tag">Day ${t.day}</span>
+        <select onchange="setStatus(${t.id},this.value)" class="form-select" style="font-size:11px;padding:4px 6px">
+          <option value="todo" ${st==='todo'?'selected':''}>To do</option>
+          <option value="doing" ${st==='doing'?'selected':''}>Doing</option>
+          <option value="done" ${st==='done'?'selected':''}>Done</option>
+          <option value="blocked" ${st==='blocked'?'selected':''}>Blocked</option>
+        </select>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('task-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:13px">No tasks match current filters.</div>';
+  renderStats();
+}
+
+function setStatus(id,st){
+  const t=tasks.find(x=>x.id===id);
+  if(t){t.status=st;saveState();renderTasks();}
+}
+function cycleStatus(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  const c=['todo','doing','done'];
+  const i=c.indexOf(t.status||'todo');
+  t.status=c[(i+1)%c.length];
+  saveState();renderTasks();
+}
+
+function getCurrentDay(){
+  const start=new Date('2026-04-14');
+  const now=new Date();
+  return Math.max(1,Math.min(90,Math.ceil((now-start)/(86400000))+1));
+}
+
+function renderToday(){
+  const day=getCurrentDay();
+  const d=new Date();
+  document.getElementById('today-date').textContent=d.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const todayT=tasks.filter(t=>t.day===day);
+  const tomorrowT=tasks.filter(t=>t.day===day+1);
+  document.getElementById('today-week-label').textContent='Day '+day+(todayT[0]?' · Week '+todayT[0].week:'');
+  function tHtml(t){
+    const st=t.status||'todo';
+    const sMap={todo:'badge-todo',doing:'badge-doing',done:'badge-done',blocked:'badge-blocked'};
+    return `<div class="task-row">
+      <div class="check ${st==='done'?'done':''}" onclick="cycleStatus(${t.id})"></div>
+      <div><div class="task-name ${st==='done'?'done':''}">${t.name}</div><div class="task-meta" style="margin-top:3px">${t.cat} &middot; ${t.detail}</div></div>
+      <span class="badge ${sMap[st]}">${st}</span>
+      <select onchange="setStatus(${t.id},this.value)" class="form-select" style="font-size:11px;padding:4px 6px">
+        <option value="todo" ${st==='todo'?'selected':''}>To do</option>
+        <option value="doing" ${st==='doing'?'selected':''}>Doing</option>
+        <option value="done" ${st==='done'?'selected':''}>Done</option>
+        <option value="blocked" ${st==='blocked'?'selected':''}>Blocked</option>
+      </select>
+    </div>`;
+  }
+  document.getElementById('today-tasks').innerHTML=todayT.length?todayT.map(tHtml).join(''):'<div class="today-empty">No tasks scheduled for today — check the full task list.</div>';
+  document.getElementById('tomorrow-tasks').innerHTML=tomorrowT.length?`<div class="card">${tomorrowT.map(t=>`<div style="padding:9px 0;border-bottom:0.5px solid var(--border-light)"><div style="font-size:13px">${t.name}</div><div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${t.cat}</div></div>`).join('')}</div>`:'<div style="font-size:13px;color:var(--text-tertiary)">No tasks tomorrow.</div>';
+}
+
+function renderKeywords(){
+  document.getElementById('kw-count').textContent=keywords.length;
+  const ranking=keywords.filter(k=>k.pos&&k.pos<=20).length;
+  const positions=keywords.filter(k=>k.pos).map(k=>k.pos);
+  const avg=positions.length?Math.round(positions.reduce((a,b)=>a+b,0)/positions.length):'—';
+  const improved=keywords.filter(k=>k.pos&&k.prev&&k.pos<k.prev).length;
+  document.getElementById('kw-ranking').textContent=ranking;
+  document.getElementById('kw-avg').textContent=avg;
+  document.getElementById('kw-improved').textContent=improved;
+  const sMap={'top 3':'badge-done','top 10':'badge-low','top 20':'badge-med','top 50':'badge-todo','not ranking':'badge-blocked'};
+  document.getElementById('kw-list').innerHTML=keywords.map((k)=>{
+    let chg='—';
+    if(k.pos&&k.prev){const d=k.prev-k.pos;chg=d>0?`<span class="pos-up">+${d}</span>`:`<span class="pos-down">${d}</span>`;}
+    else if(k.pos&&!k.prev){chg=`<span class="pos-new">NEW</span>`;}
+    return `<div class="kw-row">
+      <span>${k.term}</span>
+      <span style="color:var(--text-secondary)">${k.vol?k.vol.toLocaleString():''}</span>
+      <span style="font-weight:500">${k.pos||'—'}</span>
+      <span>${chg}</span>
+      <span class="badge ${sMap[k.status]||'badge-todo'}" style="font-size:10px;padding:2px 7px">${k.status}</span>
+    </div>`;
+  }).join('');
+}
+
+function addKeyword(){
+  const term=document.getElementById('kw-term').value.trim();
+  const vol=parseInt(document.getElementById('kw-vol').value)||0;
+  const pos=parseInt(document.getElementById('kw-pos').value)||null;
+  const status=document.getElementById('kw-status').value;
+  if(!term)return;
+  keywords.push({term,vol,pos,prev:null,status});
+  saveState();
+  document.getElementById('kw-term').value='';
+  document.getElementById('kw-vol').value='';
+  document.getElementById('kw-pos').value='';
+  renderKeywords();
+  showToast('Keyword added');
+}
+
+function exportKeywordsCSV(){
+  const csv='Keyword,Volume,Position,Previous,Change,Status\n'+keywords.map(k=>{
+    const chg=k.pos&&k.prev?k.prev-k.pos:'';
+    return `"${k.term}",${k.vol||''},${k.pos||''},${k.prev||''},${chg},${k.status}`;
+  }).join('\n');
+  dl('samaro-keywords.csv','data:text/csv;charset=utf-8,'+encodeURIComponent(csv));
+}
+
+let kwChart=null,trChart=null;
+function renderAnalytics(){
+  document.getElementById('an-sessions').textContent=metrics.sessions?metrics.sessions.toLocaleString():'—';
+  document.getElementById('an-pages').textContent=metrics.pages||'—';
+  document.getElementById('an-dr').textContent=metrics.dr||'—';
+  document.getElementById('an-bl').textContent=metrics.backlinks?metrics.backlinks.toLocaleString():'—';
+  const baseKW=keywords.filter(k=>k.pos).length;
+  const kwData=[baseKW,baseKW+3,baseKW+8,baseKW+15,baseKW+25,Math.min(keywords.length,baseKW+40)];
+  if(kwChart)kwChart.destroy();
+  const ctx=document.getElementById('kw-chart').getContext('2d');
+  kwChart=new Chart(ctx,{type:'line',data:{labels:['Day 1','Day 15','Day 30','Day 45','Day 60','Day 90'],datasets:[{label:'Keywords ranking',data:kwData,borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#185FA5'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{color:'#888'}},x:{grid:{display:false},ticks:{color:'#888'}}}}});
+  if(trChart)trChart.destroy();
+  const ctx2=document.getElementById('traffic-chart').getContext('2d');
+  const sessBase=metrics.sessions||2200;
+  trChart=new Chart(ctx2,{type:'bar',data:{labels:['Month 1','Month 2','Month 3','Month 4 (proj)','Month 5 (proj)','Month 6 (proj)'],datasets:[{label:'Organic sessions',data:[Math.round(sessBase*0.55),Math.round(sessBase*0.82),sessBase,Math.round(sessBase*1.6),Math.round(sessBase*2.3),Math.round(sessBase*3)],backgroundColor:['#378ADD','#378ADD','#378ADD','rgba(55,138,221,0.35)','rgba(55,138,221,0.35)','rgba(55,138,221,0.35)'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{color:'#888',callback:v=>v.toLocaleString()}},x:{grid:{display:false},ticks:{color:'#888'}}}}});
+}
+
+function saveMetrics(){
+  const s=document.getElementById('in-sessions').value;
+  const p=document.getElementById('in-pages').value;
+  const dr=document.getElementById('in-dr').value;
+  const bl=document.getElementById('in-bl').value;
+  if(s)metrics.sessions=parseInt(s);
+  if(p)metrics.pages=parseInt(p);
+  if(dr)metrics.dr=parseInt(dr);
+  if(bl)metrics.backlinks=parseInt(bl);
+  saveMetricsToStorage();
+  renderAnalytics();
+  showToast('Metrics saved');
+}
+
+function renderExport(){
+  const day=getCurrentDay();
+  const todayT=tasks.filter(t=>t.day===day);
+  const done=tasks.filter(t=>t.status==='done').length;
+  const pct=Math.round(done/tasks.length*100);
+  const blocked=tasks.filter(t=>t.status==='blocked');
+  let s=`:rocket: *Samaro SEO — Daily Standup | Day ${day}*\n\n`;
+  s+=`:bar_chart: *Progress:* ${done}/${tasks.length} tasks complete (${pct}%)\n\n`;
+  s+=`:calendar: *Today's Tasks:*\n`;
+  todayT.forEach(t=>{const st=t.status||'todo';const i=st==='done'?':white_check_mark:':st==='doing'?':arrows_counterclockwise:':st==='blocked'?':red_circle:':':white_circle:';s+=`${i} ${t.name} _(${t.cat})_\n`;});
+  if(blocked.length){s+=`\n:red_circle: *Blocked (${blocked.length}):*\n`;blocked.slice(0,3).forEach(t=>{s+=`• ${t.name}\n`;});}
+  s+=`\n:dart: *Focus:* ${todayT[0]?todayT[0].cat:'See full task list'}`;
+  document.getElementById('slack-today').textContent=s;
+  const weekDone=tasks.filter(t=>t.status==='done'&&t.day>day-7&&t.day<=day);
+  const kwR=keywords.filter(k=>k.pos&&k.pos<=20).length;
+  let w=`:mega: *Samaro SEO — Weekly Digest*\n\n`;
+  w+=`:white_check_mark: *Tasks done this week:* ${weekDone.length}\n`;
+  w+=`:mag: *Keywords in top 20:* ${kwR}/${keywords.length} tracked\n`;
+  w+=`:writing_hand: *Content published:* ${tasks.filter(t=>t.status==='done'&&(t.cat==='Content India'||t.cat==='Content International')).length} posts\n`;
+  w+=`:link: *Backlink tasks done:* ${tasks.filter(t=>t.status==='done'&&t.cat==='Backlinks').length}\n`;
+  w+=`:bar_chart: *Overall progress:* ${pct}% of 90-day plan\n\n`;
+  w+=`:dart: *Next priorities:*\n`;
+  tasks.filter(t=>(t.status||'todo')==='todo'&&t.day>day).slice(0,4).forEach(t=>{w+=`• ${t.name}\n`;});
+  document.getElementById('slack-weekly').textContent=w;
+}
+
+function copyText(id,btn){
+  const text=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    if(btn){const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1500);}
+    showToast('Copied to clipboard');
+  }).catch(()=>showToast('Select and copy manually'));
+}
+
+function downloadClickUp(){
+  let csv='Task Name,Status,Priority,Due Date,Tags,Description\n';
+  tasks.forEach(t=>{
+    const due=new Date('2026-04-14');
+    due.setDate(due.getDate()+t.day-1);
+    const ds=due.toISOString().split('T')[0];
+    const pm={high:'Urgent',med:'Normal',low:'Low'};
+    csv+=`"${t.name}","${(t.status||'todo').toUpperCase()}","${pm[t.pri]||'Normal'}","${ds}","${t.cat}","${t.detail.replace(/"/g,"'")}"\n`;
+  });
+  dl('samaro-seo-clickup.csv','data:text/csv;charset=utf-8,'+encodeURIComponent(csv));
+}
+
+function downloadJSON(){
+  const data={generated:new Date().toISOString(),tasks,keywords,metrics};
+  dl('samaro-seo-plan.json','data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2)));
+}
+
+function downloadSelf(){
+  const html=document.documentElement.outerHTML;
+  dl('index.html','data:text/html;charset=utf-8,'+encodeURIComponent('<!DOCTYPE html>\n'+html));
+}
+
+function dl(filename,href){
+  const a=document.createElement('a');
+  a.href=href;a.download=filename;a.click();
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+loadState();
+renderTasks();
+renderStats();
+renderKeywords();
+</script>
+</body>
+</html>
