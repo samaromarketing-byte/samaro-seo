@@ -5,7 +5,8 @@ var lk=document.createElement('link');lk.rel='stylesheet';
 lk.href='https://fonts.googleapis.com/css2?family=Bricolage+Grotesk:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap';
 document.head.appendChild(lk);
 var cs=document.createElement('style');
-cs.textContent='.sqw{font-family:Inter,sans-serif;background:#f8f5f7;border-radius:20px;padding:32px 28px;max-width:780px;margin:32px auto 40px;border:1.5px solid #e8d5de}'+
+cs.textContent='.sqw{font-family:Inter,sans-serif;background:#f8f5f7;border-radius:20px;padding:32px 28px;max-width:100%;margin:32px auto 40px;border:1.5px solid #e8d5de;box-sizing:border-box}'+
+'.sqw *{box-sizing:border-box}'+
 '.sqw h1,.sqw h2,.sqw h3{font-family:"Bricolage Grotesk",sans-serif}'+
 '.sqw .sq-hd{text-align:center;margin-bottom:24px}.sqw .sq-logo{height:28px;margin-bottom:14px}'+
 '.sqw .sq-title{font-size:26px;font-weight:700;color:#A55578;margin:0 0 6px}'+
@@ -82,24 +83,17 @@ window.sqCB=function(b){cb=b;render();};
 window.sqRetry=function(){qi=0;ans={};cb='yearly';render();};
 function inject(){
 var wrap=document.createElement('div');wrap.className='sqw';wrap.innerHTML='<div id="sqw-inner"></div>';
-var h2s=document.querySelectorAll('h2');
+var ps=document.querySelectorAll('p');
 var target=null;
-for(var i=0;i<h2s.length;i++){
-  var txt=h2s[i].textContent.trim();
-  if(txt.match(/^\d/) || txt.toLowerCase().includes('faster') || txt.toLowerCase().includes('how') || txt.toLowerCase().includes('why')){
-    target=h2s[i];break;
+for(var i=0;i<ps.length;i++){
+  if(ps[i].textContent.length>50 && ps[i].offsetHeight>20 && ps[i].offsetWidth>300){
+    target=ps[i];break;
   }
 }
-if(!target&&h2s.length>0) target=h2s[0];
 if(target&&target.parentNode){
   target.parentNode.insertBefore(wrap,target);
-} else {
-  var ps=document.querySelectorAll('p');
-  for(var j=0;j<ps.length;j++){
-    if(ps[j].textContent.length>50){ps[j].parentNode.insertBefore(wrap,ps[j]);break;}
-  }
 }
 render();
 }
-document.readyState==='loading'?document.addEventListener('DOMContentLoaded',function(){setTimeout(inject,900);}):setTimeout(inject,900);
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',function(){setTimeout(inject,1200);}):setTimeout(inject,1200);
 })();
