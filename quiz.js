@@ -82,9 +82,23 @@ window.sqCB=function(b){cb=b;render();};
 window.sqRetry=function(){qi=0;ans={};cb='yearly';render();};
 function inject(){
 var wrap=document.createElement('div');wrap.className='sqw';wrap.innerHTML='<div id="sqw-inner"></div>';
-var art=document.querySelector('article,[class*="content"],[class*="blog"] p,main p');
-if(art&&art.parentNode){art.parentNode.insertBefore(wrap,art);}
-else{var ps=document.querySelectorAll('p');if(ps.length>2)ps[0].parentNode.insertBefore(wrap,ps[0]);}
+var h2s=document.querySelectorAll('h2');
+var target=null;
+for(var i=0;i<h2s.length;i++){
+  var txt=h2s[i].textContent.trim();
+  if(txt.match(/^\d/) || txt.toLowerCase().includes('faster') || txt.toLowerCase().includes('how') || txt.toLowerCase().includes('why')){
+    target=h2s[i];break;
+  }
+}
+if(!target&&h2s.length>0) target=h2s[0];
+if(target&&target.parentNode){
+  target.parentNode.insertBefore(wrap,target);
+} else {
+  var ps=document.querySelectorAll('p');
+  for(var j=0;j<ps.length;j++){
+    if(ps[j].textContent.length>50){ps[j].parentNode.insertBefore(wrap,ps[j]);break;}
+  }
+}
 render();
 }
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',function(){setTimeout(inject,900);}):setTimeout(inject,900);
